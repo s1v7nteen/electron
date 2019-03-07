@@ -637,8 +637,19 @@ describe('session module', () => {
 
     it('allows configuring proxy settings', (done) => {
       const config = { proxyRules: 'http=myproxy:80' }
+      customSession.setProxy(config).then(() => {
+        customSession.resolveProxy('http://example.com/').then(proxy => {
+          assert.strictEqual(proxy, 'PROXY myproxy:80')
+          done()
+        })
+      })
+    })
+
+    // TODO(codebytere): remove when Promisification is complete
+    it('allows configuring proxy settings (callback)', (done) => {
+      const config = { proxyRules: 'http=myproxy:80' }
       customSession.setProxy(config, () => {
-        customSession.resolveProxy('http://example.com/', (proxy) => {
+        customSession.resolveProxy('http://example.com/', proxy => {
           assert.strictEqual(proxy, 'PROXY myproxy:80')
           done()
         })
@@ -650,8 +661,22 @@ describe('session module', () => {
         proxyRules: 'http=myproxy:80',
         proxyBypassRules: '<-loopback>'
       }
-      customSession.setProxy(config, () => {
-        customSession.resolveProxy('http://localhost', (proxy) => {
+      customSession.setProxy(config).then(() => {
+        customSession.resolveProxy('http://localhost').then(proxy => {
+          assert.strictEqual(proxy, 'PROXY myproxy:80')
+          done()
+        })
+      })
+    })
+
+    // TODO(codebytere): remove when Promisification is complete
+    it('allows removing the implicit bypass rules for localhost (callback)', (done) => {
+      const config = {
+        proxyRules: 'http=myproxy:80',
+        proxyBypassRules: '<-loopback>'
+      }
+      customSession.setProxy(config).then(() => {
+        customSession.resolveProxy('http://localhost').then(proxy => {
           assert.strictEqual(proxy, 'PROXY myproxy:80')
           done()
         })
@@ -672,8 +697,32 @@ describe('session module', () => {
       })
       server.listen(0, '127.0.0.1', () => {
         const config = { pacScript: `http://127.0.0.1:${server.address().port}` }
+        customSession.setProxy(config).then(() => {
+          customSession.resolveProxy('https://google.com').then(proxy => {
+            assert.strictEqual(proxy, 'PROXY myproxy:8132')
+            done()
+          })
+        })
+      })
+    })
+
+    // TODO(codebytere): remove when Promisification is complete
+    it('allows configuring proxy settings with pacScript (callback)', (done) => {
+      server = http.createServer((req, res) => {
+        const pac = `
+          function FindProxyForURL(url, host) {
+            return "PROXY myproxy:8132";
+          }
+        `
+        res.writeHead(200, {
+          'Content-Type': 'application/x-ns-proxy-autoconfig'
+        })
+        res.end(pac)
+      })
+      server.listen(0, '127.0.0.1', () => {
+        const config = { pacScript: `http://127.0.0.1:${server.address().port}` }
         customSession.setProxy(config, () => {
-          customSession.resolveProxy('https://google.com', (proxy) => {
+          customSession.resolveProxy('https://google.com', proxy => {
             assert.strictEqual(proxy, 'PROXY myproxy:8132')
             done()
           })
@@ -686,8 +735,22 @@ describe('session module', () => {
         proxyRules: 'http=myproxy:80',
         proxyBypassRules: '<local>'
       }
+      customSession.setProxy(config).then(() => {
+        customSession.resolveProxy('http://example/').then(proxy => {
+          assert.strictEqual(proxy, 'DIRECT')
+          done()
+        })
+      })
+    })
+
+    // TODO(codebytere): remove when Promisification is complete
+    it('allows bypassing proxy settings (callback)', (done) => {
+      const config = {
+        proxyRules: 'http=myproxy:80',
+        proxyBypassRules: '<local>'
+      }
       customSession.setProxy(config, () => {
-        customSession.resolveProxy('http://example/', (proxy) => {
+        customSession.resolveProxy('http://example/', proxy => {
           assert.strictEqual(proxy, 'DIRECT')
           done()
         })
