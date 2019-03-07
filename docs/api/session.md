@@ -405,12 +405,11 @@ event. The [DownloadItem](download-item.md) will not have any `WebContents` asso
 the initial state will be `interrupted`. The download will start only when the
 `resume` API is called on the [DownloadItem](download-item.md).
 
-#### `ses.clearAuthCache(options[, callback])`
+#### `ses.clearAuthCache(options)`
 
 * `options` ([RemovePassword](structures/remove-password.md) | [RemoveClientCertificate](structures/remove-client-certificate.md))
-* `callback` Function (optional) - Called when operation is done.
 
-Clears the session’s HTTP authentication cache.
+Returns `Promise<void>` - resolves when the session’s HTTP authentication cache has been cleared.
 
 #### `ses.setPreloads(preloads)`
 

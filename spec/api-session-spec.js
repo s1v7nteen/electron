@@ -924,7 +924,7 @@ describe('session module', () => {
             })
             response.on('end', () => {
               assert.strictEqual(data, 'authenticated')
-              ses.clearAuthCache({ type: 'password' }, () => {
+              ses.clearAuthCache({ type: 'password' }).then(() => {
                 issueLoginRequest(attempt)
               })
             })
