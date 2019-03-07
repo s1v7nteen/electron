@@ -341,6 +341,26 @@ describe('session module', () => {
       })
       w.loadFile(path.join(fixtures, 'api', 'localstorage.html'))
     })
+
+    // TODO(codebytere): remove when promisification is complete
+    it('clears localstorage data (callback)', (done) => {
+      ipcMain.on('count', (event, count) => {
+        ipcMain.removeAllListeners('count')
+        assert.strictEqual(count, 0)
+        done()
+      })
+      w.webContents.on('did-finish-load', () => {
+        const options = {
+          origin: 'file://',
+          storages: ['localstorage'],
+          quotas: ['persistent']
+        }
+        w.webContents.session.clearStorageData(options, () => {
+          w.webContents.send('getcount')
+        })
+      })
+      w.loadFile(path.join(fixtures, 'api', 'localstorage.html'))
+    })
   })
 
   describe('will-download event', () => {
